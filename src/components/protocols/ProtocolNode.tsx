@@ -1,6 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { ProtocolNodeData } from '@/types/protocol';
+import { TimerState } from '@/hooks/useProtocol';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Timer } from 'lucide-react';
@@ -10,32 +11,16 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 interface ProtocolNodeProps {
   node: ProtocolNodeData;
   onAdvance: (nextNodeId?: string) => void;
+  onStartTimer?: (nodeId: string, duration: number) => void;
+  timerState?: TimerState;
 }
 
-const ProtocolNode: React.FC<ProtocolNodeProps> = ({ node, onAdvance }) => {
-  const [timeLeft, setTimeLeft] = useState(node.duration || 0);
-  const [isRunning, setIsRunning] = useState(false);
-
-  useEffect(() => {
-    setTimeLeft(node.duration || 0);
-    setIsRunning(false);
-  }, [node]);
-
-  useEffect(() => {
-    if (!isRunning || node.type !== 'timer' || !node.duration) return;
-
-    if (timeLeft <= 0) {
-      onAdvance(node.next);
-      return;
-    }
-
-    const intervalId = setInterval(() => {
-      setTimeLeft(prevTime => prevTime - 1);
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [isRunning, timeLeft, node, onAdvance]);
-
+const ProtocolNode: React.FC<ProtocolNodeProps> = ({ 
+  node, 
+  onAdvance, 
+  onStartTimer,
+  timerState 
+}) => {
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -65,16 +50,42 @@ const ProtocolNode: React.FC<ProtocolNodeProps> = ({ node, onAdvance }) => {
           </CardFooter>
         );
       case 'timer':
+        const timeLeft = timerState?.timeLeft ?? node.duration ?? 0;
+        const isRunning = timerState?.isRunning ?? false;
+        const duration = node.duration ?? 0;
+        
         return (
           <CardFooter className="flex-col items-stretch gap-4">
              <div className="text-center">
-                <p className="text-5xl font-bold font-mono tabular-nums">{formatTime(timeLeft)}</p>
+                <p className={`text-5xl font-bold font-mono tabular-nums ${
+                  timeLeft <= 30 && timeLeft > 0 ? 'text-yellow-600' : 
+                  timeLeft === 0 ? 'text-red-600' : 'text-foreground'
+                }`}>
+                  {formatTime(timeLeft)}
+                </p>
              </div>
-             {node.duration && timeLeft > 0 && <Progress value={((node.duration - timeLeft) / node.duration) * 100} className="w-full" />}
+             {duration > 0 && (
+               <Progress 
+                 value={((duration - timeLeft) / duration) * 100} 
+                 className={`w-full ${
+                   timeLeft <= 30 && timeLeft > 0 ? '[&>div]:bg-yellow-500' :
+                   timeLeft === 0 ? '[&>div]:bg-red-500' : ''
+                 }`}
+               />
+             )}
             {!isRunning ? (
-                <Button onClick={() => setIsRunning(true)}><Timer className="mr-2 h-4 w-4" /> Start Timer</Button>
+                <Button 
+                  onClick={() => onStartTimer?.(node.id, duration)}
+                  disabled={!onStartTimer || duration === 0}
+                >
+                  <Timer className="mr-2 h-4 w-4" /> Start Timer
+                </Button>
             ) : (
-                <Button onClick={() => onAdvance(node.next)} variant="secondary" disabled={timeLeft > 0}>
+                <Button 
+                  onClick={() => onAdvance(node.next)} 
+                  variant={timeLeft === 0 ? "default" : "secondary"}
+                  disabled={timeLeft > 0}
+                >
                     {timeLeft > 0 ? 'Cycle in Progress...' : 'Continue'}
                 </Button>
             )}
@@ -90,7 +101,15 @@ const ProtocolNode: React.FC<ProtocolNodeProps> = ({ node, onAdvance }) => {
   return (
     <Card className="w-full max-w-lg mx-auto animate-in fade-in duration-500">
       <CardHeader>
-        <CardTitle>{node.title}</CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          {node.title}
+          {timerState?.isRunning && node.type !== 'timer' && (
+            <div className="flex items-center text-sm text-blue-600">
+              <Timer className="h-4 w-4 mr-1" />
+              {formatTime(timerState.timeLeft)}
+            </div>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-lg">{node.content}</p>

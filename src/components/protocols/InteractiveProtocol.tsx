@@ -4,21 +4,51 @@ import { ProtocolNodeData } from '@/types/protocol';
 import ProtocolNode from './ProtocolNode';
 import { Button } from '@/components/ui/button';
 import ProtocolHistory from './ProtocolHistory';
+import TimerStatus from './TimerStatus';
 
 interface InteractiveProtocolProps {
   algorithm: ProtocolNodeData[];
 }
 
 const InteractiveProtocol: React.FC<InteractiveProtocolProps> = ({ algorithm }) => {
-  const { currentNode, advance, reset, history } = useProtocol(algorithm);
+  const { 
+    currentNode, 
+    advance, 
+    reset, 
+    history, 
+    startTimer, 
+    getTimerState,
+    activeTimers
+  } = useProtocol(algorithm);
 
   if (!currentNode) {
     return <div>Error: Protocol node not found.</div>;
   }
 
+  const handleTimerClick = (nodeId: string) => {
+    // Navigate to the timer node when clicked
+    const timerNode = algorithm.find(node => node.id === nodeId);
+    if (timerNode) {
+      advance(nodeId);
+    }
+  };
+
+  const currentTimerState = getTimerState(currentNode.id);
+
   return (
     <div>
-      <ProtocolNode node={currentNode} onAdvance={advance} />
+      <TimerStatus 
+        activeTimers={activeTimers}
+        algorithm={algorithm}
+        onTimerClick={handleTimerClick}
+      />
+      
+      <ProtocolNode 
+        node={currentNode} 
+        onAdvance={advance}
+        onStartTimer={startTimer}
+        timerState={currentTimerState}
+      />
       
       {history && history.length > 1 && (
         <ProtocolHistory history={history} algorithm={algorithm} />
