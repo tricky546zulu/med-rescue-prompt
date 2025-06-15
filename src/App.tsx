@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import MedicationDetail from "./pages/MedicationDetail"; // Import the new page
+import InstallPWA from "./components/InstallPWA";
+import ReloadPrompt from "./components/ReloadPrompt";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,8 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      <InstallPWA />
+      <ReloadPrompt />
     </TooltipProvider>
   </QueryClientProvider>
 );
