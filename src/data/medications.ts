@@ -1,4 +1,3 @@
-
 import { ShieldAlert, HeartPulse, ShieldCheck, Siren } from "lucide-react";
 
 export interface Medication {
@@ -20,6 +19,9 @@ export interface Medication {
     level: 'High Alert' | 'Caution' | 'Info';
     text: string;
   }>;
+  concentrations?: string[];
+  palsaclsAlgorithms?: string[];
+  lookAlikeSoundAlike?: string[];
 }
 
 export const medications: Medication[] = [
@@ -34,6 +36,7 @@ export const medications: Medication[] = [
       { population: "Adult Cardiac Arrest", details: "1 mg (10 mL of 1:10,000 solution) IV/IO every 3-5 minutes." },
       { population: "Pediatric Cardiac Arrest", details: "0.01 mg/kg (0.1 mL/kg of 1:10,000 solution) IV/IO every 3-5 minutes. Max dose 1 mg." },
       { population: "Anaphylaxis (Adult)", details: "0.3-0.5 mg (of 1:1,000 solution) IM." },
+      { population: "Anaphylaxis (Pediatric)", details: "0.01 mg/kg (of 1:1,000 solution) IM. Max dose 0.3 mg."}
     ],
     administration: {
       routes: ["IV", "IO", "IM", "ET"],
@@ -43,6 +46,18 @@ export const medications: Medication[] = [
         { level: "High Alert", text: "Dosage concentration errors are common. Double-check 1:1,000 vs 1:10,000 strength." },
         { level: "Caution", text: "Can cause significant tachycardia and hypertension." }
     ],
+    concentrations: [
+        "1 mg/mL (1:1,000)",
+        "0.1 mg/mL (1:10,000)"
+    ],
+    palsaclsAlgorithms: [
+        "PALS Cardiac Arrest Algorithm",
+        "ACLS Cardiac Arrest Algorithm (Asystole/PEA and VF/pVT)",
+        "PALS/ACLS Bradycardia Algorithm",
+    ],
+    lookAlikeSoundAlike: [
+        "Ephedrine"
+    ]
   },
   {
     id: "adenosine",
@@ -83,6 +98,7 @@ export const medications: Medication[] = [
     alerts: [
         { level: "High Alert", text: "Can cause respiratory depression and hypotension, especially when given rapidly or with opioids." },
     ],
+    lookAlikeSoundAlike: ["lorazepam", "diazepam"]
   },
   {
     id: "fentanyl",

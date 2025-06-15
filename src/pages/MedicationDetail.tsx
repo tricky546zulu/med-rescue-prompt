@@ -96,7 +96,40 @@ const MedicationDetail = () => {
                 </ul>
               </CardContent>
             </Card>
+
+            {medication.concentrations && medication.concentrations.length > 0 && (
+              <Card>
+                <CardHeader><CardTitle className="text-xl">Concentrations</CardTitle></CardHeader>
+                <CardContent>
+                  <ul className="list-disc list-inside space-y-1 text-gray-700">
+                    {medication.concentrations.map((item, i) => <li key={i}>{item}</li>)}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {medication.palsaclsAlgorithms && medication.palsaclsAlgorithms.length > 0 && (
+              <Card>
+                <CardHeader><CardTitle className="text-xl">Relevant Algorithms</CardTitle></CardHeader>
+                <CardContent>
+                  <ul className="list-disc list-inside space-y-1 text-gray-700">
+                    {medication.palsaclsAlgorithms.map((item, i) => <li key={i}>{item}</li>)}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
           </div>
+          
+          {medication.lookAlikeSoundAlike && medication.lookAlikeSoundAlike.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle className="text-xl flex items-center"><ShieldAlert className="h-5 w-5 mr-2 text-yellow-500" />Look-Alike/Sound-Alike</CardTitle></CardHeader>
+              <CardContent>
+                <ul className="list-disc list-inside space-y-1 text-gray-700">
+                  {medication.lookAlikeSoundAlike.map((item, i) => <li key={i}>{item}</li>)}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader><CardTitle className="text-xl">Dosage</CardTitle></CardHeader>
