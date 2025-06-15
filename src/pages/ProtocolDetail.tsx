@@ -6,6 +6,15 @@ import { ArrowLeft, Construction } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import InteractiveProtocol from '@/components/protocols/InteractiveProtocol';
 import { aclsCardiacArrestAlgorithm } from '@/data/protocols/acls-cardiac-arrest';
+import { palsCardiacArrestAlgorithm } from '@/data/protocols/pals-cardiac-arrest';
+import { anaphylaxisAlgorithm } from '@/data/protocols/anaphylaxis';
+import { ProtocolNodeData } from '@/types/protocol';
+
+const protocolAlgorithms: Record<string, ProtocolNodeData[]> = {
+  'acls-cardiac-arrest': aclsCardiacArrestAlgorithm,
+  'pals-cardiac-arrest': palsCardiacArrestAlgorithm,
+  'anaphylaxis': anaphylaxisAlgorithm,
+};
 
 const ProtocolDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,8 +32,10 @@ const ProtocolDetail = () => {
   }
 
   const renderProtocolContent = () => {
-    if (protocol.id === 'acls-cardiac-arrest') {
-      return <InteractiveProtocol algorithm={aclsCardiacArrestAlgorithm} />;
+    const algorithm = id ? protocolAlgorithms[id] : undefined;
+
+    if (algorithm) {
+      return <InteractiveProtocol algorithm={algorithm} />;
     }
     
     return (
