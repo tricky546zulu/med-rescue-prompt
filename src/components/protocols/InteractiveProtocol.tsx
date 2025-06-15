@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { useProtocol } from '@/hooks/useProtocol';
 import { ProtocolNodeData } from '@/types/protocol';
@@ -22,13 +21,13 @@ const InteractiveProtocol: React.FC<InteractiveProtocolProps> = ({ algorithm }) 
   useEffect(() => {
     if (isLocked && !toastShownRef.current) {
       toast({
-        title: (
+        title: "Screen Kept Awake",
+        description: (
           <div className="flex items-center">
-            <Smartphone className="h-5 w-5 mr-2 text-blue-500" />
-            <span className="font-semibold">Screen Kept Awake</span>
+            <Smartphone className="h-4 w-4 mr-2 text-blue-500" />
+            <span>Your screen will not sleep during this protocol.</span>
           </div>
         ),
-        description: "Your screen will not sleep during this protocol.",
       });
       toastShownRef.current = true;
     }
