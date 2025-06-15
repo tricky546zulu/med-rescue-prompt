@@ -4,20 +4,23 @@ import { medications } from '@/data/medications';
 import Header from '@/components/Header';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ShieldAlert, Siren, Info } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, ShieldAlert, Siren, Info, Clock, AlertTriangle, Heart, Star, Eye } from 'lucide-react';
 import DosageCalculator from '@/components/DosageCalculator';
 
 const alertIcons = {
   'High Alert': <Siren className="h-5 w-5 mr-2 text-red-500" />,
+  'Black Box': <AlertTriangle className="h-5 w-5 mr-2 text-red-600" />,
   'Caution': <ShieldAlert className="h-5 w-5 mr-2 text-yellow-500" />,
   'Info': <Info className="h-5 w-5 mr-2 text-blue-500" />,
 };
 
 const alertColors = {
   'High Alert': 'bg-red-100 text-red-800 border-red-200',
+  'Black Box': 'bg-red-200 text-red-900 border-red-300',
   'Caution': 'bg-yellow-100 text-yellow-800 border-yellow-200',
   'Info': 'bg-blue-100 text-blue-800 border-blue-200',
-}
+};
 
 const MedicationDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,132 +40,313 @@ const MedicationDetail = () => {
     );
   }
 
+  const hasWeightBasedDosing = medication.dosage.some(d => d.calculation?.type === 'perKg');
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <Header />
       <main className="container mx-auto p-4 md:p-8">
-        <Link
-          to="/"
-          className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold mb-6 group"
-        >
-          <ArrowLeft className="h-5 w-5 mr-2 transition-transform group-hover:-translate-x-1" />
-          Back to Search
-        </Link>
-        
-        <div className="space-y-6">
-          <Card className="overflow-hidden">
-            <CardHeader className="bg-gray-100 border-b">
-              <h1 className="text-3xl font-extrabold text-gray-900">{medication.name}</h1>
-              <p className="text-lg text-gray-500">{medication.category}</p>
-            </CardHeader>
-            <CardContent className="p-6">
-              <p className="text-base text-gray-700">{medication.description}</p>
-            </CardContent>
-          </Card>
+        <div className="max-w-6xl mx-auto">
+          <Link
+            to="/"
+            className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold mb-6 group transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5 mr-2 transition-transform group-hover:-translate-x-1" />
+            Back to Search
+          </Link>
           
-          {medication.alerts.length > 0 && (
-             <Card>
-                <CardHeader>
-                    <CardTitle className="text-xl">Alerts & Cautions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {medication.alerts.map((alert, index) => (
-                        <div key={index} className={`flex items-start p-4 rounded-lg border ${alertColors[alert.level]}`}>
-                            {alertIcons[alert.level]}
-                            <div>
-                                <h4 className="font-bold">{alert.level}</h4>
-                                <p>{alert.text}</p>
-                            </div>
-                        </div>
-                    ))}
-                </CardContent>
-            </Card>
-          )}
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader><CardTitle className="text-xl">Indications</CardTitle></CardHeader>
-              <CardContent>
-                <ul className="list-disc list-inside space-y-1 text-gray-700">
-                  {medication.indications.map((item, i) => <li key={i}>{item}</li>)}
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader><CardTitle className="text-xl">Contraindications</CardTitle></CardHeader>
-              <CardContent>
-                <ul className="list-disc list-inside space-y-1 text-gray-700">
-                  {medication.contraindications.map((item, i) => <li key={i}>{item}</li>)}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {medication.concentrations && medication.concentrations.length > 0 && (
-              <Card>
-                <CardHeader><CardTitle className="text-xl">Concentrations</CardTitle></CardHeader>
-                <CardContent>
-                  <ul className="list-disc list-inside space-y-1 text-gray-700">
-                    {medication.concentrations.map((item, i) => <li key={i}>{item}</li>)}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {medication.palsaclsAlgorithms && medication.palsaclsAlgorithms.length > 0 && (
-              <Card>
-                <CardHeader><CardTitle className="text-xl">Relevant Algorithms</CardTitle></CardHeader>
-                <CardContent>
-                  <ul className="list-disc list-inside space-y-1 text-gray-700">
-                    {medication.palsaclsAlgorithms.map((item, i) => <li key={i}>{item}</li>)}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-          
-          {medication.lookAlikeSoundAlike && medication.lookAlikeSoundAlike.length > 0 && (
-            <Card>
-              <CardHeader><CardTitle className="text-xl flex items-center"><ShieldAlert className="h-5 w-5 mr-2 text-yellow-500" />Look-Alike/Sound-Alike</CardTitle></CardHeader>
-              <CardContent>
-                <ul className="list-disc list-inside space-y-1 text-gray-700">
-                  {medication.lookAlikeSoundAlike.map((item, i) => <li key={i}>{item}</li>)}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
-            <CardHeader><CardTitle className="text-xl">Dosage</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              {medication.dosage.map((dose, i) => (
-                <div key={i} className="border-l-4 border-gray-200 pl-4">
-                  <p className="font-semibold text-gray-800">{dose.population}</p>
-                  <p className="text-gray-600">{dose.details}</p>
+          <div className="space-y-6">
+            {/* Header Card */}
+            <Card className="overflow-hidden shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h1 className="text-3xl font-extrabold mb-2">{medication.name}</h1>
+                    {medication.genericName && (
+                      <p className="text-blue-100 text-lg italic mb-2">({medication.genericName})</p>
+                    )}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <Badge className="bg-white text-blue-700 text-sm px-3 py-1">
+                        {medication.category}
+                      </Badge>
+                      {medication.subcategory && (
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-sm px-3 py-1">
+                          {medication.subcategory}
+                        </Badge>
+                      )}
+                      {medication.pregnancyCategory && (
+                        <Badge variant="outline" className="bg-white text-blue-700 border-white text-sm px-3 py-1">
+                          Pregnancy: {medication.pregnancyCategory}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Quick Action Buttons */}
+                  <div className="flex flex-col gap-2 ml-4">
+                    <Button variant="secondary" size="sm" className="bg-white text-blue-700 hover:bg-blue-50">
+                      <Star className="h-4 w-4 mr-1" />
+                      Favorite
+                    </Button>
+                    <Button variant="secondary" size="sm" className="bg-white text-blue-700 hover:bg-blue-50">
+                      <Eye className="h-4 w-4 mr-1" />
+                      Quick View
+                    </Button>
+                  </div>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-          
-          <DosageCalculator medication={medication} />
+                
+                {/* Onset/Duration */}
+                {medication.onsetDuration && (
+                  <div className="bg-blue-800 bg-opacity-50 rounded-lg p-3 flex items-center">
+                    <Clock className="h-5 w-5 mr-3 text-blue-200" />
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-blue-200">Onset: </span>
+                        <span className="font-semibold">{medication.onsetDuration.onset}</span>
+                      </div>
+                      <div>
+                        <span className="text-blue-200">Duration: </span>
+                        <span className="font-semibold">{medication.onsetDuration.duration}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardHeader>
+              
+              <CardContent className="p-6">
+                <p className="text-lg text-gray-700 leading-relaxed">{medication.description}</p>
+              </CardContent>
+            </Card>
+            
+            {/* Alerts & Safety Information */}
+            {medication.alerts.length > 0 && (
+               <Card className="shadow-lg">
+                  <CardHeader>
+                      <CardTitle className="text-xl flex items-center">
+                        <ShieldAlert className="h-6 w-6 mr-2 text-red-500" />
+                        Safety Alerts & Warnings
+                      </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                      {medication.alerts.map((alert, index) => (
+                          <div key={index} className={`flex items-start p-4 rounded-lg border-l-4 ${alertColors[alert.level]}`}>
+                              {alertIcons[alert.level]}
+                              <div className="flex-1">
+                                  <h4 className="font-bold text-sm uppercase tracking-wide mb-1">{alert.level}</h4>
+                                  <p className="leading-relaxed">{alert.text}</p>
+                              </div>
+                          </div>
+                      ))}
+                  </CardContent>
+              </Card>
+            )}
 
-          <Card>
-            <CardHeader><CardTitle className="text-xl">Administration</CardTitle></CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className="font-semibold">Routes:</span>
-                {medication.administration.routes.map((route) => (
-                  <Badge key={route} variant="secondary">{route}</Badge>
-                ))}
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Left Column */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Indications & Contraindications */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card className="shadow-md">
+                    <CardHeader className="bg-green-50">
+                      <CardTitle className="text-lg flex items-center text-green-800">
+                        <Heart className="h-5 w-5 mr-2" />
+                        Indications
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <ul className="space-y-2">
+                        {medication.indications.map((item, i) => (
+                          <li key={i} className="flex items-start">
+                            <span className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                            <span className="text-gray-700">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="shadow-md">
+                    <CardHeader className="bg-red-50">
+                      <CardTitle className="text-lg flex items-center text-red-800">
+                        <AlertTriangle className="h-5 w-5 mr-2" />
+                        Contraindications
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <ul className="space-y-2">
+                        {medication.contraindications.map((item, i) => (
+                          <li key={i} className="flex items-start">
+                            <span className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                            <span className="text-gray-700">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Dosage Information */}
+                <Card className="shadow-lg">
+                  <CardHeader className="bg-blue-50">
+                    <CardTitle className="text-xl text-blue-800">Dosage Guidelines</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-6">
+                      {medication.dosage.map((dose, i) => (
+                        <div key={i} className="border-l-4 border-blue-500 pl-6 py-2">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-bold text-gray-800 text-lg">{dose.population}</h4>
+                            {dose.calculation && (
+                              <Badge variant="secondary" className="text-xs">
+                                Weight-based
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-gray-700 leading-relaxed">{dose.details}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Weight-Based Calculator */}
+                {hasWeightBasedDosing && <DosageCalculator medication={medication} />}
+
+                {/* Administration */}
+                <Card className="shadow-md">
+                  <CardHeader className="bg-purple-50">
+                    <CardTitle className="text-lg text-purple-800">Administration</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-2">Routes:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {medication.administration.routes.map((route) => (
+                            <Badge key={route} variant="secondary" className="px-3 py-1">
+                              {route}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-2">Administration Notes:</h4>
+                        <p className="text-gray-700 leading-relaxed">{medication.administration.notes}</p>
+                      </div>
+
+                      {medication.administration.monitoring && (
+                        <div>
+                          <h4 className="font-semibold text-gray-800 mb-2">Monitoring Parameters:</h4>
+                          <ul className="list-disc list-inside space-y-1 text-gray-700">
+                            {medication.administration.monitoring.map((item, i) => (
+                              <li key={i}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-              <p className="text-gray-700">{medication.administration.notes}</p>
-            </CardContent>
-          </Card>
 
-        </div>
-      </main>
-    </div>
-  );
+              {/* Right Column - Additional Information */}
+              <div className="space-y-6">
+                {/* Concentrations */}
+                {medication.concentrations && medication.concentrations.length > 0 && (
+                  <Card className="shadow-md">
+                    <CardHeader className="bg-gray-50">
+                      <CardTitle className="text-lg">Available Concentrations</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <ul className="space-y-2">
+                        {medication.concentrations.map((item, i) => (
+                          <li key={i} className="bg-gray-100 px-3 py-2 rounded font-mono text-sm">
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Reversal Agent */}
+                {medication.reversal && (
+                  <Card className="shadow-md border-orange-200">
+                    <CardHeader className="bg-orange-50">
+                      <CardTitle className="text-lg text-orange-800">Reversal Agent</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <div className="bg-orange-100 p-3 rounded-lg">
+                        <p className="font-semibold text-orange-800">{medication.reversal}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Look-Alike/Sound-Alike */}
+                {medication.lookAlikeSoundAlike && medication.lookAlikeSoundAlike.length > 0 && (
+                  <Card className="shadow-md border-yellow-200">
+                    <CardHeader className="bg-yellow-50">
+                      <CardTitle className="text-lg flex items-center text-yellow-800">
+                        <ShieldAlert className="h-5 w-5 mr-2" />
+                        Look-Alike/Sound-Alike
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <div className="space-y-2">
+                        {medication.lookAlikeSoundAlike.map((item, i) => (
+                          <div key={i} className="bg-yellow-100 px-3 py-2 rounded">
+                            <span className="font-medium text-yellow-800">⚠️ {item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Related Algorithms */}
+                {medication.palsaclsAlgorithms && medication.palsaclsAlgorithms.length > 0 && (
+                  <Card className="shadow-md">
+                    <CardHeader className="bg-indigo-50">
+                      <CardTitle className="text-lg text-indigo-800">Related Protocols</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <ul className="space-y-2">
+                        {medication.palsaclsAlgorithms.map((item, i) => (
+                          <li key={i} className="flex items-center text-sm">
+                            <Heart className="h-4 w-4 mr-2 text-indigo-600" />
+                            <span className="text-gray-700">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Drug Interactions */}
+                {medication.interactions && medication.interactions.length > 0 && (
+                  <Card className="shadow-md border-red-200">
+                    <CardHeader className="bg-red-50">
+                      <CardTitle className="text-lg text-red-800">Major Interactions</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <ul className="space-y-2">
+                        {medication.interactions.map((item, i) => (
+                          <li key={i} className="text-sm text-gray-700 bg-red-50 p-2 rounded">
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
 };
 
 export default MedicationDetail;
