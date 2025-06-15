@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ShieldAlert, Siren, Info } from 'lucide-react';
+import DosageCalculator from '@/components/DosageCalculator';
 
 const alertIcons = {
   'High Alert': <Siren className="h-5 w-5 mr-2 text-red-500" />,
@@ -135,13 +136,15 @@ const MedicationDetail = () => {
             <CardHeader><CardTitle className="text-xl">Dosage</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               {medication.dosage.map((dose, i) => (
-                <div key={i} className="border-l-4 border-blue-500 pl-4">
+                <div key={i} className="border-l-4 border-gray-200 pl-4">
                   <p className="font-semibold text-gray-800">{dose.population}</p>
                   <p className="text-gray-600">{dose.details}</p>
                 </div>
               ))}
             </CardContent>
           </Card>
+          
+          <DosageCalculator medication={medication} />
 
           <Card>
             <CardHeader><CardTitle className="text-xl">Administration</CardTitle></CardHeader>
