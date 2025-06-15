@@ -45,9 +45,13 @@ export const palsCardiacArrestAlgorithm: ProtocolNodeData[] = [
     id: 'cpr-cycle',
     type: 'timer',
     title: 'CPR Cycle (2 minutes)',
-    content: 'Continue high-quality CPR for 2 minutes.',
+    content: 'Continue high-quality CPR for 2 minutes. During CPR, focus on treating reversible causes.',
     duration: 120,
-    next: 'rhythm-check-2'
+    next: 'rhythm-check-2',
+    clinicalNotes: [
+      "H's: Hypovolemia, Hypoxia, Hydrogen ion (acidosis), Hypo/hyperkalemia, Hypoglycemia, Hypothermia",
+      "T's: Tension pneumothorax, Tamponade (cardiac), Toxins, Thrombosis (pulmonary), Thrombosis (coronary), Trauma"
+    ]
   },
   {
     id: 'rhythm-check-2',

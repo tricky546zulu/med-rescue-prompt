@@ -8,4 +8,5 @@ export interface ProtocolNodeData {
   options?: { text: string; next:string }[];
   duration?: number;
   medicationId?: string;
+  clinicalNotes?: string[];
 }

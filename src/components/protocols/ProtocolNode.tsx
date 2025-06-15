@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Timer } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface ProtocolNodeProps {
   node: ProtocolNodeData;
@@ -93,6 +94,20 @@ const ProtocolNode: React.FC<ProtocolNodeProps> = ({ node, onAdvance }) => {
       </CardHeader>
       <CardContent>
         <p className="text-lg">{node.content}</p>
+        {node.clinicalNotes && node.clinicalNotes.length > 0 && (
+          <Accordion type="single" collapsible className="w-full mt-4">
+            <AccordionItem value="item-1">
+              <AccordionTrigger>Clinical Considerations</AccordionTrigger>
+              <AccordionContent>
+                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                  {node.clinicalNotes.map((note, index) => (
+                    <li key={index}>{note}</li>
+                  ))}
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
       </CardContent>
       {renderNodeContent()}
     </Card>

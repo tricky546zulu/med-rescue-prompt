@@ -45,9 +45,13 @@ export const aclsCardiacArrestAlgorithm: ProtocolNodeData[] = [
     id: 'cpr-cycle-2',
     type: 'timer',
     title: 'CPR Cycle (2 minutes)',
-    content: 'Continue high-quality CPR for 2 minutes.',
+    content: 'Continue high-quality CPR for 2 minutes. During CPR, focus on treating reversible causes.',
     duration: 120,
-    next: 'rhythm-check-2'
+    next: 'rhythm-check-2',
+    clinicalNotes: [
+      "H's: Hypovolemia, Hypoxia, Hydrogen ion (acidosis), Hypo/hyperkalemia, Hypothermia",
+      "T's: Tension pneumothorax, Tamponade (cardiac), Toxins, Thrombosis (pulmonary), Thrombosis (coronary)"
+    ]
   },
   {
     id: 'rhythm-check-2',
