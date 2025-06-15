@@ -3,7 +3,9 @@ import React, { useState } from 'react';
 import { Medication, Dosage } from '@/data/medications';
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Calculator } from 'lucide-react';
+import { Calculator, ShieldAlert } from 'lucide-react';
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface DosageCalculatorProps {
   medication: Medication;
@@ -11,8 +13,10 @@ interface DosageCalculatorProps {
 
 const DosageCalculator: React.FC<DosageCalculatorProps> = ({ medication }) => {
   const [weight, setWeight] = useState<string>('');
+  const [isConfirmed, setIsConfirmed] = useState(false);
   
   const weightBasedDosages = medication.dosage.filter(d => d.calculation?.type === 'perKg');
+  const isHighAlert = medication.alerts.some(a => a.level === 'High Alert');
 
   if (weightBasedDosages.length === 0) {
     return null;
@@ -22,6 +26,7 @@ const DosageCalculator: React.FC<DosageCalculatorProps> = ({ medication }) => {
     const value = e.target.value;
     if (/^\d*\.?\d*$/.test(value)) {
         setWeight(value);
+        setIsConfirmed(false); // Reset confirmation when weight changes
     }
   };
 
@@ -103,8 +108,22 @@ const DosageCalculator: React.FC<DosageCalculatorProps> = ({ medication }) => {
           <span className="font-semibold text-gray-700">kg</span>
         </div>
         
-        {weight && parseFloat(weight) > 0 && (
-          <div className="space-y-4 animate-in fade-in duration-300">
+        {weight && parseFloat(weight) > 0 && isHighAlert && !isConfirmed && (
+          <div className="p-4 mt-4 bg-yellow-50 border border-yellow-300 rounded-lg animate-in fade-in duration-300">
+            <div className="flex">
+              <ShieldAlert className="h-5 w-5 mr-3 text-yellow-500 flex-shrink-0 mt-1" />
+              <div className="flex items-center space-x-3">
+                <Checkbox id="double-check" onCheckedChange={(checked) => setIsConfirmed(checked === true)} />
+                <Label htmlFor="double-check" className="font-bold cursor-pointer leading-relaxed text-yellow-800">
+                  High-Alert Medication: Please confirm dose calculation has been double-checked.
+                </Label>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {weight && parseFloat(weight) > 0 && (!isHighAlert || isConfirmed) && (
+          <div className="space-y-4 animate-in fade-in duration-300 mt-4">
             {weightBasedDosages.map((dose, index) => {
               const patientWeight = parseFloat(weight);
               const { doseString, volumeString } = calculateDose(dose, patientWeight);
