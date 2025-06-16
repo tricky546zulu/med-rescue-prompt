@@ -21,6 +21,182 @@ interface CalculationResult {
   warnings: string[];
 }
 
+// --- Refactored Dosage Calculation Helper Logic ---
+
+// Helper types for dose calculation
+type RawDoseType = number | { min: number; max: number };
+
+interface DoseCappingResult {
+  finalDose: RawDoseType;
+  isMaxDoseApplied: boolean;
+  isMinDoseApplied: boolean;
+  capWarnings: string[];
+}
+
+/**
+ * Calculates the base dose from medication data and patient weight.
+ * @param {NonNullable<Dosage['calculation']>} calc - The calculation configuration from medication data.
+ * @param {number} patientWeight - The patient's weight in kilograms.
+ * @returns {RawDoseType | null} The raw calculated dose (number or min/max range) or null if parameters are invalid.
+ */
+export const _getBaseDose = (calc: NonNullable<Dosage['calculation']>, patientWeight: number): RawDoseType | null => {
+  if (calc.dosePerKg) {
+    return patientWeight * calc.dosePerKg;
+  } else if (calc.dosePerKgMin && calc.dosePerKgMax) {
+    if (calc.dosePerKgMin > calc.dosePerKgMax) {
+      // Invalid configuration: min dose is greater than max dose
+      // console.error("Invalid medication configuration: dosePerKgMin > dosePerKgMax");
+      return null; // Or handle as an error appropriately
+    }
+    return {
+      min: patientWeight * calc.dosePerKgMin,
+      max: patientWeight * calc.dosePerKgMax,
+    };
+  }
+  // console.error("Unsupported dose calculation type or missing parameters.");
+  return null; // Indicates an issue with medication data or unsupported calculation type
+};
+
+/**
+ * Applies absolute minimum and maximum dose caps to a calculated dose.
+ * @param {RawDoseType} rawDoseParam - The raw dose, possibly a range.
+ * @param {NonNullable<Dosage['calculation']>} calc - Medication calculation rules.
+ * @returns {DoseCappingResult} Object with the capped dose, flags for applied caps, and warnings.
+ */
+export const _applyDoseCaps = (rawDoseParam: RawDoseType, calc: NonNullable<Dosage['calculation']>): DoseCappingResult => {
+  // Deep copy to avoid modifying the original rawDose object, especially if it's a range.
+  const rawDose = JSON.parse(JSON.stringify(rawDoseParam)) as RawDoseType;
+  let finalDose: RawDoseType = rawDose;
+
+  let isMaxDoseApplied = false;
+  let isMinDoseApplied = false;
+  const capWarnings: string[] = [];
+
+  // Apply maximum dose limits
+  if (typeof calc.maxDose === 'number') {
+    if (typeof finalDose === 'number') {
+      if (finalDose > calc.maxDose) {
+        finalDose = calc.maxDose;
+        isMaxDoseApplied = true;
+        capWarnings.push(`Maximum absolute dose of ${calc.maxDose} ${calc.doseUnit} applied.`);
+      }
+    } else { // Range dose
+      if (finalDose.max > calc.maxDose) {
+        finalDose.max = calc.maxDose;
+        isMaxDoseApplied = true;
+        capWarnings.push(`Maximum absolute dose of ${calc.maxDose} ${calc.doseUnit} applied to range.`);
+      }
+      // If the min of the range itself is now greater than the capped max, adjust min.
+      if (finalDose.min > finalDose.max) {
+        finalDose.min = finalDose.max;
+        // This implies an adjustment to min due to max capping, so consider it a form of min dose application.
+        isMinDoseApplied = true;
+        capWarnings.push(`Minimum dose in range adjusted to match capped maximum dose.`);
+      }
+    }
+  }
+
+  // Apply minimum dose limits
+  if (typeof calc.minDose === 'number') {
+    if (typeof finalDose === 'number') {
+      if (finalDose < calc.minDose) {
+        finalDose = calc.minDose;
+        isMinDoseApplied = true;
+        capWarnings.push(`Minimum absolute dose of ${calc.minDose} ${calc.doseUnit} applied.`);
+      }
+    } else { // Range dose
+      if (finalDose.min < calc.minDose) {
+        finalDose.min = calc.minDose;
+        isMinDoseApplied = true;
+        capWarnings.push(`Minimum absolute dose of ${calc.minDose} ${calc.doseUnit} applied to range.`);
+      }
+      // After applying min cap, if min now exceeds max (e.g. maxDose was also applied and was very low, or minDose > maxDose)
+      // This specific condition (minDose > maxDose from config) should ideally be caught earlier or flagged.
+      if (finalDose.min > finalDose.max) {
+        finalDose.max = finalDose.min; // Max should not be less than the absolute min cap.
+        // This implies an adjustment to max due to min capping, so consider it a form of max dose application.
+        isMaxDoseApplied = true;
+        capWarnings.push(`Maximum dose in range adjusted to match applied minimum dose.`);
+      }
+    }
+  }
+
+  // Final sanity check for range doses: ensure min <= max.
+  // This handles cases where initial rawDose.min > rawDose.max or complex interactions of caps.
+  if (typeof finalDose !== 'number' && finalDose.min > finalDose.max) {
+    // This situation implies an issue with the initial range or capping logic that wasn't fully resolved.
+    // For safety, could set min = max, or flag as an error.
+    // Let's prioritize the maximum value if such a conflict occurs post-capping.
+    capWarnings.push(`Dose range conflict: Min dose (${finalDose.min}) exceeded Max dose (${finalDose.max}). Adjusted min to match max.`);
+    finalDose.min = finalDose.max;
+    isMinDoseApplied = true; // Min was adjusted.
+  }
+
+  return { finalDose, isMaxDoseApplied, isMinDoseApplied, capWarnings };
+};
+
+/**
+ * Formats a numeric dose or dose range into a display string.
+ * @param {RawDoseType} finalDose - The dose value or range.
+ * @param {string} doseUnit - The unit of the dose (e.g., "mg", "mcg").
+ * @returns {string} A formatted string representing the dose.
+ */
+export const _formatDoseString = (finalDose: RawDoseType, doseUnit: string): string => {
+  const precision = doseUnit.toLowerCase() === 'mcg' ? 0 : 2;
+  if (typeof finalDose === 'number') {
+    return `${Number(finalDose.toFixed(precision))} ${doseUnit}`;
+  } else {
+    const minVal = finalDose.min ?? 0;
+    const maxVal = finalDose.max ?? 0;
+    return `${Number(minVal.toFixed(precision))}-${Number(maxVal.toFixed(precision))} ${doseUnit}`;
+  }
+};
+
+/**
+ * Calculates the volume of medication to administer.
+ * @param {RawDoseType} finalDose - The final dose (number or range).
+ * @param {Dosage['calculation']['concentration']} concentration - Concentration details.
+ * @returns {string | null} Formatted volume string (e.g., "5 mL", "2.5-5 mL") or null if not applicable.
+ */
+export const _calculateVolume = (finalDose: RawDoseType, concentration: Dosage['calculation']['concentration']): string | null => {
+  if (!concentration || typeof concentration.value !== 'number' || concentration.value === 0) {
+    return null;
+  }
+  const volumePrecision = 2;
+  const concValue = concentration.value;
+
+  if (typeof finalDose === 'number') {
+    const volume = finalDose / concValue;
+    return `${Number(volume.toFixed(volumePrecision))} mL`; // Assuming mL, should use concentration.unit if available and standardize
+  } else {
+    const minVal = finalDose.min ?? 0;
+    const maxVal = finalDose.max ?? 0;
+    const minVolume = minVal / concValue;
+    const maxVolume = maxVal / concValue;
+    return `${Number(minVolume.toFixed(volumePrecision))}-${Number(maxVolume.toFixed(volumePrecision))} mL`;
+  }
+};
+
+/**
+ * Aggregates general warnings based on patient weight.
+ * @param {number} patientWeight - Patient's weight in kg.
+ * @param {string[]} currentWarnings - Array of warnings from previous steps (e.g., capping).
+ * @returns {string[]} An array of all relevant warnings.
+ */
+export const _aggregateWarnings = (patientWeight: number, currentWarnings: string[]): string[] => {
+  const warnings = [...currentWarnings];
+  if (patientWeight < 2 && patientWeight > 0) {
+    warnings.push('Neonatal dosing may require specific adjustments and expert verification.');
+  }
+  if (patientWeight > 100) {
+    warnings.push('Patient weight > 100kg. Ensure adult dosing caps/guidelines are considered if not automatically applied by absolute max dose.');
+  }
+  // Add more generic warnings here if needed
+  return warnings;
+};
+
+// --- End of Refactored Dosage Calculation Helper Logic ---
+
 const DosageCalculator: React.FC<DosageCalculatorProps> = ({ medication }) => {
   const [weight, setWeight] = useState<string>('');
   const [isConfirmed, setIsConfirmed] = useState(false);
@@ -43,120 +219,53 @@ const DosageCalculator: React.FC<DosageCalculatorProps> = ({ medication }) => {
 
   const calculateDose = (dose: Dosage, patientWeight: number): CalculationResult => {
     const calc = dose.calculation;
+
+    // Initial validation
     if (!calc || !patientWeight || patientWeight <= 0) {
-        return { 
-          doseString: 'Enter patient weight', 
-          volumeString: null, 
-          isMaxDoseApplied: false,
-          isMinDoseApplied: false,
-          warnings: []
-        };
+      return {
+        doseString: 'Enter patient weight.',
+        volumeString: null,
+        isMaxDoseApplied: false,
+        isMinDoseApplied: false,
+        warnings: [],
+      };
     }
 
-    let rawDose: number | { min: number, max: number };
-    const warnings: string[] = [];
-
-    // Calculate base dose
-    if (calc.dosePerKg) {
-        rawDose = patientWeight * calc.dosePerKg;
-    } else if (calc.dosePerKgMin && calc.dosePerKgMax) {
-        rawDose = {
-            min: patientWeight * calc.dosePerKgMin,
-            max: patientWeight * calc.dosePerKgMax,
-        };
-    } else {
-        return { 
-          doseString: 'Calculation not available', 
-          volumeString: null,
-          isMaxDoseApplied: false,
-          isMinDoseApplied: false,
-          warnings: []
-        };
-    }
-    
-    let finalDose: number | { min: number, max: number } = rawDose;
-    let isMaxDoseApplied = false;
-    let isMinDoseApplied = false;
-
-    // Apply maximum dose limits
-    if (calc.maxDose) {
-        if (typeof rawDose === 'number') {
-            if (rawDose > calc.maxDose) {
-              finalDose = calc.maxDose;
-              isMaxDoseApplied = true;
-              warnings.push(`Maximum dose of ${calc.maxDose} ${calc.doseUnit} applied`);
-            }
-        } else {
-            const newMax = Math.min(rawDose.max, calc.maxDose);
-            if (newMax < rawDose.max) {
-              isMaxDoseApplied = true;
-              warnings.push(`Maximum dose of ${calc.maxDose} ${calc.doseUnit} applied`);
-            }
-            finalDose = {
-                min: rawDose.min,
-                max: newMax
-            };
-        }
+    // 1. Calculate Base Dose
+    const rawDose = _getBaseDose(calc, patientWeight);
+    if (rawDose === null) {
+      return {
+        doseString: 'Calculation not supported or medication data incomplete.',
+        volumeString: null,
+        isMaxDoseApplied: false,
+        isMinDoseApplied: false,
+        warnings: ['Medication configuration does not support per-kg calculation or is incomplete.'],
+      };
     }
 
-    // Apply minimum dose limits
-    if (calc.minDose) {
-        if (typeof finalDose === 'number') {
-            if (finalDose < calc.minDose) {
-              finalDose = calc.minDose;
-              isMinDoseApplied = true;
-              warnings.push(`Minimum dose of ${calc.minDose} ${calc.doseUnit} applied`);
-            }
-        } else {
-            const newMin = Math.max(finalDose.min, calc.minDose);
-            if (newMin > finalDose.min) {
-              isMinDoseApplied = true;
-              warnings.push(`Minimum dose of ${calc.minDose} ${calc.doseUnit} applied`);
-            }
-            finalDose = {
-                min: newMin,
-                max: finalDose.max
-            };
-        }
-    }
+    // 2. Apply Dose Caps (Min/Max)
+    const {
+      finalDose,
+      isMaxDoseApplied,
+      isMinDoseApplied,
+      capWarnings
+    } = _applyDoseCaps(rawDose, calc);
 
-    // Format dose string
-    let doseString: string;
-    if (typeof finalDose === 'number') {
-        const precision = calc.doseUnit === 'mcg' ? 1 : 3;
-        doseString = `${Number(finalDose.toFixed(precision))} ${calc.doseUnit}`;
-    } else {
-        const precision = calc.doseUnit === 'mcg' ? 1 : 3;
-        doseString = `${Number(finalDose.min.toFixed(precision))}-${Number(finalDose.max.toFixed(precision))} ${calc.doseUnit}`;
-    }
+    // 3. Format Dose String
+    const doseString = _formatDoseString(finalDose, calc.doseUnit);
 
-    // Calculate volume if concentration is provided
-    let volumeString: string | null = null;
-    if (calc.concentration) {
-        if (typeof finalDose === 'number') {
-            const volume = finalDose / calc.concentration.value;
-            volumeString = `${Number(volume.toFixed(2))} mL`;
-        } else {
-            const minVolume = finalDose.min / calc.concentration.value;
-            const maxVolume = finalDose.max / calc.concentration.value;
-            volumeString = `${Number(minVolume.toFixed(2))}-${Number(maxVolume.toFixed(2))} mL`;
-        }
-    }
+    // 4. Calculate Volume
+    const volumeString = _calculateVolume(finalDose, calc.concentration);
 
-    // Add weight-based warnings
-    if (patientWeight < 2) {
-      warnings.push('Neonatal dosing may require adjustment');
-    }
-    if (patientWeight > 100) {
-      warnings.push('Adult dosing caps may apply for large patients');
-    }
+    // 5. Aggregate Warnings
+    const allWarnings = _aggregateWarnings(patientWeight, capWarnings);
 
-    return { 
-      doseString, 
-      volumeString, 
-      isMaxDoseApplied, 
-      isMinDoseApplied, 
-      warnings 
+    return {
+      doseString,
+      volumeString,
+      isMaxDoseApplied,
+      isMinDoseApplied,
+      warnings: allWarnings,
     };
   };
 
