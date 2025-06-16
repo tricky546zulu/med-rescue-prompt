@@ -131,6 +131,123 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Base styles for panel visibility - helps manage state before JS kicks in or for wider screens */
+        /* On desktop, med-details-panel is managed by 'hidden' class via JS, welcome message also. */
+        /* Med list panel is always visible on desktop by default. */
+
+        /* Mobile specific styles */
+        @media (max-width: 767px) { /* md breakpoint in Tailwind is 768px */
+            .mobile-hidden {
+                display: none !important; /* Used by JS to control panel visibility */
+            }
+
+            #app {
+                /* On mobile, the flex direction is already column due to Tailwind's `flex-col md:flex-row` */
+                /* Ensure panels take full height in column mode if content is short */
+                 min-height: 100vh; /* Or ensure h-screen on #app works as expected */
+            }
+
+            /* Initially, on mobile, show list and hide details/welcome */
+            /* Note: script.js also has logic to hide welcomeMessage and show medDetailsContainer */
+            /* This CSS provides a default state before/during JS execution */
+            /* #med-details-panel, #welcome-message {
+                display: none; /* Initially hide details on mobile via CSS too */
+            /* }
+            /* #med-list-panel {
+                display: flex; /* Ensure list is visible */
+                /* width: 100% !important; /* Take full width */
+                /* height: 100vh; /* Take full screen height if it's the only visible panel */
+            /* } */
+
+            /* Panel header adjustments */
+            #med-list-panel .p-4.border-b { /* More specific selector for panel header */
+                padding: 0.75rem; /* p-3 */
+            }
+            #med-list-panel .p-4.border-b h1 {
+                font-size: 1.125rem; /* text-lg */
+            }
+            #med-list-panel .p-4.border-b p {
+                font-size: 0.875rem; /* text-sm */
+            }
+
+            /* Filter controls adjustments */
+            #med-list-panel .p-4.space-y-4 { /* Container for search and filters */
+                padding: 0.75rem; /* p-3 */
+            }
+            #search-input {
+                padding: 0.5rem 0.75rem; /* p-2 px-3 */
+                font-size: 0.875rem; /* text-sm */
+            }
+            #med-list-panel .grid.grid-cols-2 { /* Filter buttons container */
+                display: flex;
+                flex-wrap: wrap; /* Allow buttons to wrap */
+                gap: 0.5rem; /* Reduced gap */
+            }
+            .filter-btn {
+                padding: 0.375rem 0.625rem; /* Smaller padding */
+                font-size: 0.8rem; /* Slightly smaller font */
+                flex-grow: 1; /* Allow buttons to grow and wrap */
+                min-width: calc(50% - 0.25rem); /* Try to keep two buttons per row if space, minus gap */
+            }
+
+            /* Medication list item adjustments */
+            .med-list-item {
+                padding: 0.75rem; /* p-3 */
+            }
+            .med-list-item .font-semibold { /* Med name */
+                font-size: 1rem; /* text-base */
+            }
+            .med-list-item .text-sm { /* Generic name / Sub-name */
+                font-size: 0.8rem;
+            }
+            .med-list-item .text-xs { /* Indications summary */
+                font-size: 0.75rem; /* text-xs is fine, ensure it doesn't get too small */
+                margin-top: 0.125rem; /* mt-0.5 */
+            }
+            .alert-badge {
+                font-size: 0.65rem;
+                padding: 1px 5px;
+            }
+
+            /* Medication details panel adjustments */
+            #med-details-panel {
+                padding: 0.75rem; /* p-3 */
+            }
+            #medication-details h2 { /* Med name in details */
+                font-size: 1.5rem; /* text-2xl */
+                margin-bottom: 0.25rem; /* mb-1 */
+            }
+            #medication-details .text-lg { /* Classification in details */
+                font-size: 1rem; /* text-base */
+            }
+            .content-card {
+                padding: 0.75rem; /* p-3 */
+            }
+            .content-card h3 { /* Section titles in details */
+                font-size: 1.125rem; /* text-lg */
+                margin-bottom: 0.5rem; /* mb-2 */
+            }
+            .content-card p, .content-card ul, .content-card .text-\[var\(--text-light)\] { /* Text in content cards */
+                font-size: 0.875rem; /* text-sm */
+            }
+            #medication-details .overflow-x-auto table th,
+            #medication-details .overflow-x-auto table td {
+                padding: 0.5rem; /* p-2 */
+                font-size: 0.8rem;
+            }
+
+            /* Welcome message adjustments */
+            #welcome-message .max-w-md {
+                padding: 0.75rem;
+            }
+            #welcome-message h2 {
+                font-size: 1.25rem; /* text-xl */
+            }
+            #welcome-message p {
+                font-size: 0.875rem; /* text-sm */
+            }
+        }
     </style>
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
