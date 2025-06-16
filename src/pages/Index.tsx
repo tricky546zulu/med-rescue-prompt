@@ -1,15 +1,16 @@
-
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Fuse from 'fuse.js';
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import Header from '@/components/Header';
+import SearchBar from '@/components/SearchBar';
+import EmergencyToolbar from '@/components/EmergencyToolbar';
 import { medications, Medication, getMedicationCategories } from '@/data/medications';
 import MedicationFilters from '@/components/MedicationFilters';
+import { useFavorites } from '@/hooks/useFavorites';
 import { Search, Siren, Filter, Heart, Zap, AlertTriangle, Star, Clock } from 'lucide-react';
 
 const Index = () => {
@@ -19,8 +20,16 @@ const Index = () => {
     alertLevels: [] as string[],
     adminRoutes: [] as string[],
   });
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
+
+  const {
+    favorites,
+    recentSearches,
+    recentMedications,
+    toggleFavorite,
+    addRecentSearch,
+    addRecentMedication,
+    isFavorite
+  } = useFavorites();
 
   const fuse = useMemo(() => new Fuse(medications, {
     keys: ['name', 'genericName', 'category', 'subcategory', 'description', 'indications', 'lookAlikeSoundAlike'],
@@ -40,6 +49,18 @@ const Index = () => {
         : [...currentValues, value];
       return { ...prev, [filterType]: newValues };
     });
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    if (value.trim() && value.length >= 2) {
+      addRecentSearch(value);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchTerm(suggestion);
+    addRecentSearch(suggestion);
   };
 
   const filteredMedications = useMemo(() => {
@@ -73,13 +94,16 @@ const Index = () => {
     }));
   }, [allCategories]);
 
-  const toggleFavorite = (medId: string) => {
-    setFavorites(prev => 
-      prev.includes(medId) 
-        ? prev.filter(id => id !== medId)
-        : [...prev, medId]
-    );
-  };
+  // Get recent and favorite medications for quick access
+  const recentMeds = recentMedications
+    .map(id => medications.find(med => med.id === id))
+    .filter(Boolean)
+    .slice(0, 4);
+
+  const favoriteMeds = favorites
+    .map(id => medications.find(med => med.id === id))
+    .filter(Boolean)
+    .slice(0, 4);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -91,19 +115,77 @@ const Index = () => {
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Emergency Medication Reference</h1>
             <p className="text-lg text-gray-600 mb-6">Quick access to critical medication information for emergency situations</p>
             
-            {/* Search Bar */}
-            <div className="relative mb-6">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Search medications, conditions, or categories..."
-                className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl shadow-lg"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+            {/* Enhanced Search Bar */}
+            <SearchBar
+              value={searchTerm}
+              onChange={handleSearchChange}
+              onSuggestionClick={handleSuggestionClick}
+              recentSearches={recentSearches}
+              favorites={favorites}
+            />
           </div>
+
+          {/* Emergency Quick Access Toolbar */}
+          <EmergencyToolbar 
+            onScenarioSelect={setSearchTerm}
+            className="mb-8"
+          />
           
+          {/* Quick Access - Recent & Favorites */}
+          {(recentMeds.length > 0 || favoriteMeds.length > 0) && (
+            <div className="mb-8 space-y-4">
+              {recentMeds.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <Clock className="h-5 w-5 mr-2 text-gray-600" />
+                    Recently Viewed
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {recentMeds.map(med => (
+                      <Link key={med.id} to={`/medication/${med.id}`}>
+                        <Card className="hover:shadow-md transition-shadow cursor-pointer h-20">
+                          <CardContent className="p-3 flex items-center">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-sm truncate">{med.name}</h3>
+                              <p className="text-xs text-gray-500 truncate">{med.category}</p>
+                            </div>
+                            {hasHighAlert(med) && (
+                              <Siren className="h-4 w-4 text-red-500 ml-2 flex-shrink-0" />
+                            )}
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {favoriteMeds.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                    <Star className="h-5 w-5 mr-2 text-yellow-600" />
+                    Favorites
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {favoriteMeds.map(med => (
+                      <Link key={med.id} to={`/medication/${med.id}`}>
+                        <Card className="hover:shadow-md transition-shadow cursor-pointer h-20">
+                          <CardContent className="p-3 flex items-center">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-sm truncate">{med.name}</h3>
+                              <p className="text-xs text-gray-500 truncate">{med.category}</p>
+                            </div>
+                            <Star className="h-4 w-4 text-yellow-500 ml-2 flex-shrink-0 fill-current" />
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Quick Access Scenarios */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
@@ -208,7 +290,12 @@ const Index = () => {
         {/* Medication Cards Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredMedications.map((med) => (
-            <Link to={`/medication/${med.id}`} key={med.id} className="group">
+            <Link 
+              to={`/medication/${med.id}`} 
+              key={med.id} 
+              className="group"
+              onClick={() => addRecentMedication(med.id)}
+            >
               <Card className="h-full flex flex-col transition-all duration-300 ease-in-out group-hover:shadow-xl group-hover:border-blue-500 group-hover:-translate-y-1">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start mb-2">
@@ -216,6 +303,18 @@ const Index = () => {
                       {med.name}
                     </CardTitle>
                     <div className="flex flex-col gap-1 ml-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleFavorite(med.id);
+                        }}
+                      >
+                        <Star className={`h-4 w-4 ${isFavorite(med.id) ? 'text-yellow-500 fill-current' : 'text-gray-400'}`} />
+                      </Button>
                       {hasHighAlert(med) && (
                         <div className="flex items-center text-red-500">
                           <Siren className="h-4 w-4" />

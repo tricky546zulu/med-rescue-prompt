@@ -1,4 +1,3 @@
-
 import { useParams, Link } from 'react-router-dom';
 import { medications } from '@/data/medications';
 import Header from '@/components/Header';
