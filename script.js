@@ -43,6 +43,8 @@ const medications = [
 const medListContainer = document.getElementById('medication-list');
 const medDetailsContainer = document.getElementById('medication-details');
 const welcomeMessage = document.getElementById('welcome-message');
+const medListPanelEl = document.getElementById('med-list-panel');
+const medDetailsPanelEl = document.getElementById('med-details-panel'); // This is main#med-details-panel
 const searchInput = document.getElementById('search-input');
 const filterButtons = document.querySelectorAll('.filter-btn');
 
@@ -67,19 +69,38 @@ const renderMedList = () => {
             listItem.dataset.id = med.id;
 
             let alertHtml = med.alerts.map(alert => {
-                const alertClass = alert === 'High Alert' ? 'high-alert' : 'elder-alert';
+                const alertClass = alert === 'High Alert' ? 'high-alert' : (alert === 'Elder Alert' ? 'elder-alert' : 'bg-gray-200 text-gray-700');
                 return `<span class="alert-badge ${alertClass}">${alert}</span>`;
             }).join(' ');
+
+            // Indications summary logic
+            const indicationsArray = med.indications.split('; ');
+            let indicationsSummary = '';
+            if (indicationsArray.length <= 2) {
+                indicationsSummary = indicationsArray.join(', ');
+            } else {
+                indicationsSummary = indicationsArray.slice(0, 2).join(', ') + ', ...';
+            }
 
             listItem.innerHTML = `
                 <div class="flex justify-between items-center">
                     <span class="font-semibold">${med.name.split('/')[0]}</span>
                     <div class="flex gap-1">${alertHtml}</div>
                 </div>
-                <p class="text-sm text-[var(--text-light)]">${med.name.split('/').slice(1).join('/')}</p>
+                <p class="text-sm text-[var(--text-light)] italic">${med.name.split('/').slice(1).join('/') || med.name.split('/')[0]}</p>
+                <p class="text-xs text-gray-600 mt-1 truncate" title="${med.indications}">${indicationsSummary}</p>
             `;
             listItem.addEventListener('click', () => {
                 selectedMedId = med.id;
+                // Mobile panel switching
+                if (window.innerWidth < 768) { // Tailwind's md breakpoint
+                    if(medListPanelEl) medListPanelEl.classList.add('mobile-hidden');
+                    if(medDetailsPanelEl) {
+                        medDetailsPanelEl.classList.remove('mobile-hidden');
+                        medDetailsPanelEl.classList.remove('hidden'); // Ensure not display:none from desktop default
+                    }
+                    if(welcomeMessage) welcomeMessage.classList.add('hidden'); // Ensure welcome is hidden
+                }
                 renderMedDetails(med.id);
                 renderMedList(); // Re-render list to update active item highlight
             });
@@ -92,8 +113,36 @@ const renderMedDetails = (id) => {
     const med = medications.find(m => m.id === id);
     if (!med) return;
 
+    // Clear previous details, especially if Back button was there
+    medDetailsContainer.innerHTML = '';
+
     welcomeMessage.classList.add('hidden');
-    medDetailsContainer.classList.remove('hidden');
+    medDetailsContainer.classList.remove('hidden'); // Make sure it's visible
+
+    // Mobile: Add Back Button and handle panel display
+    if (window.innerWidth < 768) {
+        if(medListPanelEl) medListPanelEl.classList.add('mobile-hidden');
+        if(medDetailsPanelEl) medDetailsPanelEl.classList.remove('mobile-hidden');
+
+        const backButton = document.createElement('button');
+        backButton.id = 'back-to-list-btn'; // Added ID
+        backButton.innerHTML = `&larr; Back to List`;
+        // Tailwind classes for styling:
+        backButton.className = 'mb-4 px-4 py-2 bg-[var(--accent-blue)] text-white rounded-md hover:bg-[var(--button-hover-bg)] transition-colors text-sm font-semibold';
+        backButton.addEventListener('click', () => {
+            if(medDetailsPanelEl) {
+                medDetailsPanelEl.classList.add('mobile-hidden');
+                medDetailsPanelEl.classList.add('hidden'); // Also add original hidden for opacity
+            }
+            if(medListPanelEl) medListPanelEl.classList.remove('mobile-hidden');
+            if(welcomeMessage) welcomeMessage.classList.add('hidden'); // Keep welcome hidden
+
+            selectedMedId = null; // Clear selection
+            renderMedList(); // Update list highlights
+            medDetailsContainer.innerHTML = ''; // Clear details content
+        });
+        medDetailsContainer.appendChild(backButton); // Add to top of details
+    }
 
     let alertHtml = med.alerts.map(alert => {
         const alertClass = alert === 'High Alert' ? 'high-alert' : 'elder-alert';
@@ -191,7 +240,83 @@ const init = () => {
     if (filterAllButton) {
         filterAllButton.classList.add('active');
     }
-    renderMedList();
+
+    // Initial panel setup for mobile
+    if (window.innerWidth < 768) {
+        if (medDetailsPanelEl) {
+            medDetailsPanelEl.classList.add('mobile-hidden');
+            medDetailsPanelEl.classList.add('hidden'); // Start hidden
+        }
+        if (welcomeMessage) {
+           // welcomeMessage.classList.add('mobile-hidden'); // Welcome message also initially hidden
+           welcomeMessage.classList.remove('hidden'); // On mobile, welcome can show if list is primary
+           welcomeMessage.classList.remove('mobile-hidden');
+        }
+        if (medListPanelEl) medListPanelEl.classList.remove('mobile-hidden');
+
+        // If a medication is somehow pre-selected (e.g. from URL later), show details
+        if (selectedMedId) {
+            renderMedDetails(selectedMedId);
+            if(medListPanelEl) medListPanelEl.classList.add('mobile-hidden');
+            if(medDetailsPanelEl) {
+                 medDetailsPanelEl.classList.remove('mobile-hidden');
+                 medDetailsPanelEl.classList.remove('hidden');
+            }
+            if(welcomeMessage) welcomeMessage.classList.add('hidden');
+        } else {
+            // No pre-selection, ensure details panel is hidden and list is shown
+            if(medDetailsPanelEl) {
+                medDetailsPanelEl.classList.add('mobile-hidden');
+                medDetailsPanelEl.classList.add('hidden');
+            }
+            if(welcomeMessage) welcomeMessage.classList.remove('hidden'); // Show welcome / list panel instructions
+            if(medListPanelEl) medListPanelEl.classList.remove('mobile-hidden');
+        }
+
+    } else {
+        // Desktop: Ensure mobile-hidden is not applied and remove mobile-specific elements
+        if(medListPanelEl) medListPanelEl.classList.remove('mobile-hidden');
+        if(medDetailsPanelEl) {
+            medDetailsPanelEl.classList.remove('mobile-hidden');
+            // Attempt to remove back button if it exists from a previous mobile state
+            const existingBackButton = document.getElementById('back-to-list-btn');
+            if (existingBackButton && existingBackButton.parentNode === medDetailsContainer) {
+                medDetailsContainer.removeChild(existingBackButton);
+            } else if (existingBackButton && existingBackButton.parentNode === medDetailsPanelEl) {
+                // Fallback if it got appended to medDetailsPanelEl directly (should be medDetailsContainer)
+                medDetailsPanelEl.removeChild(existingBackButton);
+            }
+        }
+        if(welcomeMessage) welcomeMessage.classList.remove('mobile-hidden');
+
+        // Desktop state logic
+        if (!selectedMedId) {
+            if(welcomeMessage) welcomeMessage.classList.remove('hidden');
+            if(medDetailsContainer) {
+                 // medDetailsContainer.classList.add('hidden'); // This hides the whole container, including welcome message if it were inside
+                 // Instead, ensure medication-details div is empty or appropriately handled if welcome is separate
+                 // The original HTML has welcome message and medication-details div as siblings in med-details-panel.
+                 // So, if no med selected, welcome is shown, and the medication-details div (which is medDetailsContainer) should be hidden.
+                 medDetailsContainer.classList.add('hidden'); // Hide the specific content area for med details
+                 medDetailsContainer.innerHTML = ''; // Clear stale content
+            }
+        } else {
+            // A medication IS selected on desktop
+            if(welcomeMessage) welcomeMessage.classList.add('hidden');
+            // medDetailsContainer should be visible and populated
+            medDetailsContainer.classList.remove('hidden');
+            renderMedDetails(selectedMedId); // Re-render details to ensure no "Back" button and correct content
+        }
+    }
+
+    renderMedList(); // This re-renders the list, e.g. to update active item styles
 };
 
 init();
+
+// Optional: Re-evaluate panel visibility on resize
+window.addEventListener('resize', () => {
+    // Simple approach: just call init which has the logic.
+    // More complex logic could be added to preserve state if needed.
+    init();
+});
