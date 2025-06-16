@@ -50,6 +50,12 @@ npm run dev
 - Click on "New codespace" to launch a new Codespace environment.
 - Edit files directly within the Codespace and commit and push your changes once you're done.
 
+## Codebase Structure Clarification
+
+This repository contains a primary, feature-rich React application located within the `/src` directory. This is the application built with Vite, TypeScript, React, shadcn/ui, and Tailwind CSS, and it's the focus of development and deployment through the Lovable platform.
+
+You may also notice an `index.html` file and a `script.js` file in the root directory. These files represent a simpler, standalone vanilla JavaScript version of a medication guide. While they might have served as an initial prototype or a separate utility, the main, actively developed application is the React project in `/src`. All development instructions and deployment information in this README pertain to the React application.
+
 ## What technologies are used for this project?
 
 This project is built with:
