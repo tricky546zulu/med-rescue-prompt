@@ -99,7 +99,7 @@ const MedicationDetail = () => {
                 {medication.onsetDuration && (
                   <div className="bg-blue-800 bg-opacity-50 rounded-lg p-3 flex items-center">
                     <Clock className="h-5 w-5 mr-3 text-blue-200" />
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-blue-200">Onset: </span>
                         <span className="font-semibold">{medication.onsetDuration.onset}</span>
