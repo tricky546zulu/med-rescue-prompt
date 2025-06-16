@@ -7,8 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import MedicationDetail from "./pages/MedicationDetail";
-import Protocols from "./pages/Protocols";
-import ProtocolDetail from "./pages/ProtocolDetail";
 import InstallPWA from "./components/InstallPWA";
 import ReloadPrompt from "./components/ReloadPrompt";
 import Layout from "./components/Layout";
@@ -25,8 +23,6 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/medication/:id" element={<MedicationDetail />} />
-            <Route path="/protocols" element={<Protocols />} />
-            <Route path="/protocols/:id" element={<ProtocolDetail />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

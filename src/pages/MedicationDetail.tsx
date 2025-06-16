@@ -1,3 +1,4 @@
+
 import { useParams, Link } from 'react-router-dom';
 import { medications } from '@/data/medications';
 import Header from '@/components/Header';
@@ -304,25 +305,6 @@ const MedicationDetail = () => {
                   </Card>
                 )}
 
-                {/* Related Algorithms */}
-                {medication.palsaclsAlgorithms && medication.palsaclsAlgorithms.length > 0 && (
-                  <Card className="shadow-md">
-                    <CardHeader className="bg-indigo-50">
-                      <CardTitle className="text-lg text-indigo-800">Related Protocols</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <ul className="space-y-2">
-                        {medication.palsaclsAlgorithms.map((item, i) => (
-                          <li key={i} className="flex items-center text-sm">
-                            <Heart className="h-4 w-4 mr-2 text-indigo-600" />
-                            <span className="text-gray-700">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-
                 {/* Drug Interactions */}
                 {medication.interactions && medication.interactions.length > 0 && (
                   <Card className="shadow-md border-red-200">
@@ -345,7 +327,8 @@ const MedicationDetail = () => {
           </div>
         </main>
       </div>
-    );
+    </div>
+  );
 };
 
 export default MedicationDetail;
