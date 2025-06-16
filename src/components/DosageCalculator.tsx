@@ -296,9 +296,9 @@ const DosageCalculator: React.FC<DosageCalculatorProps> = ({ medication }) => {
               placeholder="Enter patient weight" 
               value={weight} 
               onChange={handleWeightChange}
-              className="max-w-[200px] text-lg font-semibold"
+              className="max-w-[200px] text-lg font-semibold p-3" // Added p-3 for better touch
             />
-            <span className="font-semibold text-gray-700 text-lg">kg</span>
+            <span className="font-semibold text-gray-700 text-lg ml-1">kg</span> {/* Adjusted margin for p-3 on input */}
           </div>
           
           {weight && (
@@ -311,24 +311,26 @@ const DosageCalculator: React.FC<DosageCalculatorProps> = ({ medication }) => {
         {/* Dosage Selection */}
         {weightBasedDosages.length > 1 && (
           <div className="mb-6">
-            <Label className="text-sm font-semibold text-gray-700 mb-3 block">
+            <Label className="text-sm font-semibold text-gray-700 mb-2 block"> {/* Reduced mb slightly as items will have more padding */}
               Select Dosing Population:
             </Label>
-            <div className="grid gap-2">
+            <div className="space-y-2"> {/* Changed from grid gap-2 to space-y-2 for more control with padded labels */}
               {weightBasedDosages.map((dose, index) => (
-                <div key={index} className="flex items-center space-x-3">
+                <Label
+                  key={index}
+                  htmlFor={`dosage-${index}`}
+                  className="flex items-center space-x-3 p-3 rounded-md border hover:bg-gray-50 cursor-pointer transition-colors"
+                >
                   <input
                     type="radio"
                     id={`dosage-${index}`}
                     name="dosage-selection"
                     checked={selectedDosageIndex === index}
                     onChange={() => setSelectedDosageIndex(index)}
-                    className="text-blue-600"
+                    className="text-blue-600 h-4 w-4"
                   />
-                  <Label htmlFor={`dosage-${index}`} className="cursor-pointer font-medium">
-                    {dose.population}
-                  </Label>
-                </div>
+                  <span className="font-medium text-sm sm:text-base">{dose.population}</span>
+                </Label>
               ))}
             </div>
           </div>
@@ -372,15 +374,15 @@ const DosageCalculator: React.FC<DosageCalculatorProps> = ({ medication }) => {
                     </div>
                   </div>
                   
-                  <div className="grid md:grid-cols-2 gap-4 mb-3">
-                    <div>
+                  <div className="grid md:grid-cols-2 gap-x-4 gap-y-3 mb-3"> {/* Added gap-y-3 for mobile stacking */}
+                    <div className="mb-2 md:mb-0"> {/* Added bottom margin for mobile stacking */}
                       <p className="text-sm text-gray-600 mb-1">Calculated Dose:</p>
-                      <p className="text-blue-600 font-bold text-2xl">{result.doseString}</p>
+                      <p className="text-blue-600 font-bold text-xl sm:text-2xl">{result.doseString}</p> {/* Responsive font size */}
                     </div>
                     {result.volumeString && (
                       <div>
                         <p className="text-sm text-gray-600 mb-1">Volume to Draw:</p>
-                        <p className="text-green-600 font-bold text-xl">{result.volumeString}</p>
+                        <p className="text-green-600 font-bold text-lg sm:text-xl">{result.volumeString}</p> {/* Responsive font size */}
                         {dose.calculation?.concentration && (
                           <p className="text-xs text-gray-500 mt-1">
                             Using {dose.calculation.concentration.value} {dose.calculation.concentration.unit}
@@ -416,10 +418,10 @@ const DosageCalculator: React.FC<DosageCalculatorProps> = ({ medication }) => {
                 <div className="text-sm text-gray-700">
                   <p className="font-semibold mb-2">Safety Reminders:</p>
                   <ul className="space-y-1 text-xs">
-                    <li>• Always verify calculations with a second clinician</li>
-                    <li>• Check medication concentration before drawing</li>
-                    <li>• Confirm patient weight is accurate and recent</li>
-                    <li>• Review contraindications and allergies</li>
+                    <li>• Always verify calculations with a second clinician.</li>
+                    <li>• Check medication concentration before drawing.</li>
+                    <li>• Confirm patient weight is accurate and recent.</li>
+                    <li>• Review contraindications and allergies.</li>
                   </ul>
                 </div>
               </div>
