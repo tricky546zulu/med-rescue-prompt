@@ -5,7 +5,50 @@
 
 @layer base {
   :root {
-    --background: 240 5% 96%; /* gray-100 */
+    /* Reddit-inspired color scheme */
+    --background: 218 24% 14%; /* Reddit dark background #1a1a1b */
+    --foreground: 0 0% 98%; /* Light text for dark theme */
+
+    --card: 220 13% 18%; /* Reddit card background #272729 */
+    --card-foreground: 0 0% 98%;
+
+    --popover: 220 13% 18%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 16 100% 50%; /* Reddit orange #ff4500 */
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 215 25% 27%; /* Darker secondary */
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 215 25% 27%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 16 100% 50%; /* Reddit orange accent */
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 215 25% 27%;
+    --input: 215 25% 27%;
+    --ring: 16 100% 50%; /* Reddit orange ring */
+
+    --radius: 0.75rem; /* Slightly more rounded for modern look */
+
+    /* Reddit-specific custom properties */
+    --reddit-orange: 16 100% 50%;
+    --reddit-blue: 207 89% 45%;
+    --reddit-green: 122 39% 49%;
+    --reddit-red: 351 100% 60%;
+    --upvote: var(--reddit-orange);
+    --downvote: 231 48% 48%;
+    --vote-arrow: 210 9% 53%;
+  }
+
+  /* Light mode variant for toggle functionality */
+  [data-theme="light"] {
+    --background: 210 20% 90%; /* Reddit light background #dae0e6 */
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -14,8 +57,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 221.2 83.2% 53.3%; /* blue-600 */
-    --primary-foreground: 210 40% 98%;
+    --primary: 16 100% 50%; /* Keep Reddit orange */
+    --primary-foreground: 0 0% 98%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -23,20 +66,12 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: 16 100% 50%;
+    --accent-foreground: 0 0% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-
-    --radius: 0.5rem;
   }
-
-  /* No dark mode needed for this app for now */
 }
 
 @layer base {
@@ -47,9 +82,87 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    /* Reddit-style smooth scrolling */
+    scroll-behavior: smooth;
   }
 
   #root {
     @apply w-full;
   }
+
+  /* Reddit-style vote buttons */
+  .vote-button {
+    @apply w-6 h-6 text-vote-arrow hover:text-upvote transition-colors cursor-pointer;
+  }
+
+  .vote-button.upvoted {
+    @apply text-upvote;
+  }
+
+  .vote-button.downvoted {
+    @apply text-downvote;
+  }
+
+  /* Reddit-style card hover effects */
+  .reddit-card {
+    @apply transition-all duration-200 hover:border-primary/50 hover:shadow-lg;
+  }
+
+  .reddit-card:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Mobile-optimized touch targets */
+  @media (max-width: 768px) {
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  /* Smooth animations for mobile */
+  .mobile-transition {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Reddit-style compact layout */
+  .compact-mode .medication-card {
+    @apply py-2 px-3;
+  }
+
+  .compact-mode .medication-title {
+    @apply text-base font-medium;
+  }
+
+  .compact-mode .medication-description {
+    @apply text-sm line-clamp-2;
+  }
+}
+
+/* Custom scrollbar styling (Reddit-like) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+/* Pull-to-refresh indicator */
+.pull-to-refresh {
+  @apply flex items-center justify-center p-4 text-muted-foreground;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+}
+
+.pull-to-refresh.visible {
+  transform: translateY(0);
 }

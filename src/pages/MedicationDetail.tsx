@@ -385,8 +385,8 @@ const MedicationDetail = () => {
               </div>
             </Accordion>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };
