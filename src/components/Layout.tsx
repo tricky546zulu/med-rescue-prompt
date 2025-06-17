@@ -12,6 +12,11 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
 
+  // For the index page, we don't want the default layout since it has its own sidebar
+  if (location.pathname === '/') {
+    return <>{children}</>;
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
@@ -21,7 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Link
             to="/"
             className={cn(
-              'inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-gray-800 group',
+              'inline-flex flex-col items-center justify-center px-5 hover:bg-muted group',
               location.pathname === '/'
                 ? 'text-primary'
                 : 'text-muted-foreground'

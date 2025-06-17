@@ -36,6 +36,16 @@
 
     --radius: 0.75rem; /* Slightly more rounded for modern look */
 
+    /* Sidebar colors */
+    --sidebar-background: 218 24% 12%; /* Slightly darker than main background */
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 16 100% 50%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 215 25% 27%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 215 25% 20%;
+    --sidebar-ring: 16 100% 50%;
+
     /* Reddit-specific custom properties */
     --reddit-orange: 16 100% 50%;
     --reddit-blue: 207 89% 45%;
@@ -48,29 +58,39 @@
 
   /* Light mode variant for toggle functionality */
   [data-theme="light"] {
-    --background: 210 20% 90%; /* Reddit light background #dae0e6 */
-    --foreground: 222.2 84% 4.9%;
+    --background: 255 255% 100%; /* Pure white background */
+    --foreground: 0 0% 5%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 98%; /* Light gray card background */
+    --card-foreground: 0 0% 5%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 0 0% 5%;
 
     --primary: 16 100% 50%; /* Keep Reddit orange */
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
     --accent: 16 100% 50%;
     --accent-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+
+    /* Light mode sidebar */
+    --sidebar-background: 210 20% 98%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 16 100% 50%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 16 100% 50%;
   }
 }
 
@@ -92,7 +112,7 @@
 
   /* Reddit-style vote buttons */
   .vote-button {
-    @apply w-6 h-6 text-vote-arrow hover:text-upvote transition-colors cursor-pointer;
+    @apply transition-all duration-200 cursor-pointer;
   }
 
   .vote-button.upvoted {
@@ -105,11 +125,13 @@
 
   /* Reddit-style card hover effects */
   .reddit-card {
-    @apply transition-all duration-200 hover:border-primary/50 hover:shadow-lg;
+    @apply transition-all duration-200 hover:border-primary/20 hover:shadow-lg;
+    border-left: 4px solid transparent;
   }
 
   .reddit-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
+    border-left-color: hsl(var(--primary) / 0.3);
   }
 
   /* Mobile-optimized touch targets */
@@ -136,6 +158,28 @@
 
   .compact-mode .medication-description {
     @apply text-sm line-clamp-2;
+  }
+
+  /* Reddit-style line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 }
 
@@ -165,4 +209,26 @@
 
 .pull-to-refresh.visible {
   transform: translateY(0);
+}
+
+/* Reddit-style loading animation */
+@keyframes reddit-loading {
+  0%, 80%, 100% {
+    opacity: 0.3;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+.reddit-loading {
+  animation: reddit-loading 1.4s infinite ease-in-out;
+}
+
+.reddit-loading:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.reddit-loading:nth-child(2) {
+  animation-delay: -0.16s;
 }
