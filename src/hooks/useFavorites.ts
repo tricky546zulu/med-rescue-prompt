@@ -1,15 +1,14 @@
-
 import { useState, useEffect } from 'react';
 
 /** Maximum number of items to store in recent searches and medications lists. */
 const MAX_RECENT_ITEMS = 10;
 
 /** localStorage key for storing favorited medication IDs. */
-const FAVORITES_KEY = 'med-rescue-favorites';
+export const FAVORITES_KEY = 'med-rescue-favorites';
 /** localStorage key for storing recent search terms. */
-const RECENT_SEARCHES_KEY = 'med-rescue-recent-searches';
+export const RECENT_SEARCHES_KEY = 'med-rescue-recent-searches';
 /** localStorage key for storing recently viewed medication IDs. */
-const RECENT_MEDICATIONS_KEY = 'med-rescue-recent-medications';
+export const RECENT_MEDICATIONS_KEY = 'med-rescue-recent-medications';
 
 /**
  * @typedef {function(string[]): void} SetStringArrayFunction

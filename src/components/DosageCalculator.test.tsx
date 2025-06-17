@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Dosage } from '@/data/medications'; // Assuming this path is correct for types
+import type { Dosage } from '@/data/medications';
 
 // Mock/Helper Types - these might need to be adjusted or imported if complex
 // For the purpose of these tests, we'll define simplified versions or assume they can be imported/mocked.
@@ -165,7 +165,7 @@ describe('_formatDoseString', () => {
   });
 
   it('should format a single number dose (MCG) case-insensitively with 0 decimal places', () => {
-    expect(_formatDoseString(500.789, 'MCG')).toBe('501 mcg'); // .7 rounds up
+    expect(_formatDoseString(500.789, 'MCG')).toBe('501 mcg');
   });
 
   it('should format a range dose (mg)', () => {
@@ -181,18 +181,18 @@ describe('_formatDoseString', () => {
   });
 
   it('should handle undefined min/max in range by defaulting to 0', () => {
-    // @ts-expect-error testing undefined, though type should prevent
-    expect(_formatDoseString({ min: undefined, max: 10 }, 'mg')).toBe('0.00-10.00 mg');
-    // @ts-expect-error
-    expect(_formatDoseString({ min: 5, max: undefined }, 'mg')).toBe('5.00-0.00 mg');
+    const testRange1 = { min: undefined as any, max: 10 };
+    expect(_formatDoseString(testRange1, 'mg')).toBe('0.00-10.00 mg');
+    const testRange2 = { min: 5, max: undefined as any };
+    expect(_formatDoseString(testRange2, 'mg')).toBe('5.00-0.00 mg');
   });
 });
 
 describe('_calculateVolume', () => {
-  const concentration = { value: 10, unit: 'mg/mL' }; // 10 mg/mL
+  const concentration = { value: 10, unit: 'mg/mL' as const };
 
   it('should calculate volume for a single number dose', () => {
-    expect(_calculateVolume(50, concentration)).toBe('5.00 mL'); // 50mg / 10mg/mL = 5mL
+    expect(_calculateVolume(50, concentration)).toBe('5.00 mL');
   });
 
   it('should calculate volume for a range dose', () => {
@@ -204,14 +204,14 @@ describe('_calculateVolume', () => {
   });
 
   it('should return null if concentration value is null or not a number', () => {
-    // @ts-expect-error
-    expect(_calculateVolume(50, { value: null, unit: 'mg/mL' })).toBeNull();
-    // @ts-expect-error
-    expect(_calculateVolume(50, { unit: 'mg/mL' })).toBeNull();
+    const invalidConc1 = { value: null as any, unit: 'mg/mL' as const };
+    expect(_calculateVolume(50, invalidConc1)).toBeNull();
+    const invalidConc2 = { unit: 'mg/mL' as const } as any;
+    expect(_calculateVolume(50, invalidConc2)).toBeNull();
   });
 
   it('should return null if concentration value is 0', () => {
-    expect(_calculateVolume(50, { value: 0, unit: 'mg/mL' })).toBeNull();
+    expect(_calculateVolume(50, { value: 0, unit: 'mg/mL' as const })).toBeNull();
   });
 
   it('should handle zero dose', () => {

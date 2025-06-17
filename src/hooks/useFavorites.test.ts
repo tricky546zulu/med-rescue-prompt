@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useFavorites } from './useFavorites'; // Adjust path if necessary
+import { useFavorites } from './useFavorites';
 import {
   FAVORITES_KEY,
   RECENT_SEARCHES_KEY,
   RECENT_MEDICATIONS_KEY,
-  // MAX_RECENT_ITEMS // Not directly exported, but used internally by the hook. We'll use a local const for test assertions.
 } from './useFavorites';
 
 const MAX_RECENT_ITEMS_FOR_TEST = 10; // Align with the hook's internal constant
