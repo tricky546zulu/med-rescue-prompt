@@ -154,8 +154,6 @@ const MedicationDetail = () => {
               )}
 
               <div className="grid lg:grid-cols-3 gap-6">
-              {/* Left Column */}
-              <div className="lg:col-span-2 space-y-6">
                 {/* Left Column */}
                 <div className="lg:col-span-2 space-y-6">
                   {/* Indications & Contraindications */}
